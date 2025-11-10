@@ -51,6 +51,10 @@ RUN chown -R nodejs:nodejs /app
 # Copy built application from builder
 COPY --chown=nodejs:nodejs --from=builder /app/dist ./dist
 
+# Copy startup script
+COPY --chown=nodejs:nodejs start.sh ./
+RUN chmod +x start.sh
+
 # Set environment
 ENV NODE_ENV=production
 
@@ -60,5 +64,5 @@ USER nodejs
 # Expose port
 EXPOSE 3001
 
-# Start the app
-CMD ["node", "dist/main.js"]
+# Start the app with startup script
+CMD ["./start.sh"]
