@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  username      String     @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  profileImage  String?
+  isActive      Boolean    @default(true)
+  role          Role       @default(USER)
+  sessions      Session[]
+  subscriptions Subscription[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id])
+  gameName    String
+  status      SessionStatus @default(PENDING)
+  serverId    String?
+  startTime   DateTime?
+  endTime     DateTime?
+  webrtcOffer String?
+  webrtcAnswer String?
+  iceCandidates String?  // JSON array of ICE candidates
+  metadata    String?    // JSON metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([gameId])
+}
+
+model Game {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  imageUrl    String?
+  genre       String?
+  platform    String?
+  isActive    Boolean  @default(true)
+  sessions    Session[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Subscription {
+  id        String @id @default(uuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+  planId    String
+  plan      Plan   @relation(fields: [planId], references: [id])
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Plan {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int // in days
+  maxSessions Int
+  features    String? // JSON array of features
+  isActive    Boolean @default(true)
+  subscriptions Subscription[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum SessionStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  ERROR
+  TERMINATED
+}
