@@ -1,6 +1,9 @@
 # Use Node.js 18 alpine as base image
 FROM node:18-alpine AS builder
 
+# Install openssl for Prisma
+RUN apk add --no-cache openssl
+
 # Set working directory
 WORKDIR /app
 
@@ -23,8 +26,8 @@ RUN npm run build
 # Production stage
 FROM node:18-alpine AS production
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init and openssl for Prisma
+RUN apk add --no-cache dumb-init openssl
 
 WORKDIR /app
 
